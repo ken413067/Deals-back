@@ -60,6 +60,7 @@ class PostMessageController extends Controller
 
         $postMessages = $postMessages->map(function ($postMessage) {
             return [
+                'MSGWID' => $postMessage->MSGWID,
                 'MSGPost' => $postMessage->MSGPost,
                 'MSGPostTime' => $postMessage->MSGPostTime,
                 'user_name' => $postMessage->user->name,
@@ -72,3 +73,4 @@ class PostMessageController extends Controller
     }
 
 }
+

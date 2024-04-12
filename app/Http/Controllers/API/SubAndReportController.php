@@ -45,6 +45,25 @@ class SubAndReportController extends Controller
         ]);
     }
 
+
+    public function checkSubscription($userId)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => '請登入會員'], 401);
+        }
+
+        $isSubscribed = SubAndReport::where('SubReportUID', $user->id)
+            ->where('TargetUID', $userId)
+            ->exists();
+
+        return response()->json([
+            'isSubscribed' => $isSubscribed,
+        ]);
+    }
+
+
     public function storeTarget(Request $request, $articleId)
     {
         $user = Auth::user();
@@ -78,7 +97,22 @@ class SubAndReportController extends Controller
         ]);
     }
 
+    public function checkFavorite($articleId)
+    {
+        $user = Auth::user();
 
+        if (!$user) {
+            return response()->json(['error' => '請登入會員'], 401);
+        }
+
+        $isFavorited = SubAndReport::where('SubReportUID', $user->id)
+            ->where('TargetWID', $articleId)
+            ->exists();
+
+        return response()->json([
+            'isFavorited' => $isFavorited,
+        ]);
+    }
 
 
     public function reportArticle(Request $request, $articleId)
@@ -98,11 +132,11 @@ class SubAndReportController extends Controller
         if (!$user) {
             return response()->json(['error' => '用戶未登錄'], 401);
         }
-        
+
 
         $subAndReport = new SubAndReport;
         $subAndReport->SubReportUID = $user->id;
-        $subAndReport->ReportWID = $articleId; 
+        $subAndReport->ReportWID = $articleId;
         $subAndReport->ReportContent = $request->ReportContent;
 
         $subAndReport->save();

@@ -12,11 +12,12 @@ class UserPostController extends Controller
 {
     public function store(Request $request)
     {
-        if (!Auth::check()) {
-            return response()->json(['error' => '請登入會員'], 401);
-        }
+        // if (!Auth::check()) {
+        //     return response()->json(['error' => '請登入會員'], 401);
+        // }
 
-        $user = Auth::user();
+
+        // $user = Auth::user();
 
         $request->validate([
             'product_tag' => 'nullable|string',
@@ -32,11 +33,11 @@ class UserPostController extends Controller
         $article = new UserPost;
         $article->title = $request->title;
         $article->Article = $request->Article;
-        $article->ConcessionStart = $request->ConcessionStart;
-        $article->ConcessionEnd = $request->ConcessionEnd;
+        $article->ConcessionStart = $request->concessionStart;
+        $article->ConcessionEnd = $request->concessionEnd;        
         $article->product_tag = $request->product_tag;
         $article->location_tag = $request->location_tag;
-        $article->UID = $user->UID;
+        // $article->UID = $user->UID;
         $article->ItemLink = $request->ItemLink; 
 
 
@@ -48,7 +49,7 @@ class UserPostController extends Controller
 
         $itemImgBase64 = base64_encode($article->ItemIMG);
 
-        $article->user()->associate($user);
+        // $article->user()->associate($user);
         $article->save();
 
         return response()->json([
@@ -69,56 +70,20 @@ class UserPostController extends Controller
 
 
     public function index()
-    {
-        $articles = UserPost::with('user:id,name')
-                            ->orderBy('PostTime', 'desc')
-                            ->get(); 
-    
-        $articlesTransformed = $articles->map(function ($article) {
-            $itemImgBase64 = base64_encode($article->ItemIMG);
-    
-            $title = $article->InProgress === '已過期' ? '<span class="expired-title">[已過期]</span>  ' . $article->Title . '</span>' : $article->Title;
-    
-            return [
-                'wid' => $article->WID,
-                'title' => $title,
-                'Article' => $article->Article,
-                'user_name' => $article->user ? $article->user->name : null,
-                'created_at' => Carbon::parse($article->PostTime)->format('Y年m月d日 H:i'),
-                'updated_at' => $article->ChangeTime ? Carbon::parse($article->ChangeTime)->format('Y年m月d日 H:i') : null,
-                'itemImg' => $itemImgBase64,
-                'ItemLink' => $article->ItemLink,
-                'product_tag' => $article->product_tag,
-                'location_tag' => $article->location_tag,
-                'concessionStart' => $article->ConcessionStart,
-                'concessionEnd' => $article->ConcessionEnd,
-            ];
-        });
-    
-        return response()->json([
-            'data' => $articlesTransformed,
-        ]);
-    }
+{
+    $perPage = 10;
+    $articles = UserPost::with('user:id,name')
+                        ->orderBy('PostTime', 'desc')
+                        ->paginate($perPage);
 
+    $articlesTransformed = $articles->map(function ($article) {
+        $itemImgBase64 = base64_encode($article->ItemIMG);
 
-    public function show($id)
-    {
-        $article = UserPost::with('user:id,name')->find($id);
+        $title = $article->InProgress === '已過期' ? '<span class="expired-title">[已過期]</span>  ' . $article->Title . '</span>' : $article->Title;
 
-        if (!$article) {
-            return response()->json(['error' => '文章不存在'], 404);
-        }
-
-
-        if ($article->ItemIMG) {
-            $itemImgBase64 = base64_encode($article->ItemIMG);
-        } else {
-            $itemImgBase64 = "";
-        }
-
-        $articleTransformed = [
+        return [
             'wid' => $article->WID,
-            'title' => $article->Title,
+            'title' => $title,
             'Article' => $article->Article,
             'user_name' => $article->user ? $article->user->name : null,
             'created_at' => Carbon::parse($article->PostTime)->format('Y年m月d日 H:i'),
@@ -130,10 +95,53 @@ class UserPostController extends Controller
             'concessionStart' => $article->ConcessionStart,
             'concessionEnd' => $article->ConcessionEnd,
         ];
+    });
 
-        return response()->json($articleTransformed);
+    return response()->json([
+        'data' => $articlesTransformed,
+        'links' => [
+            'first' => $articles->url(1),
+            'last' => $articles->url($articles->lastPage()),
+            'prev' => $articles->previousPageUrl(),
+            'next' => $articles->nextPageUrl(),
+        ],
+        'meta' => [
+            'current_page' => $articles->currentPage(),
+            'last_page' => $articles->lastPage(),
+            'per_page' => $perPage,
+            'total' => $articles->total(),
+        ],
+    ]);
+}
+
+    public function show($id)
+{
+    $article = UserPost::with('user:id,name')->find($id);
+
+    if (!$article) {
+        return response()->json(['error' => '文章不存在'], 404);
     }
 
+    $itemImgBase64 = $article->ItemIMG ? base64_encode($article->ItemIMG) : "";
+
+    $articleTransformed = [
+        'wid' => $article->WID,
+        'title' => $article->Title,
+        'Article' => $article->Article,
+        'user_name' => $article->user ? $article->user->name : null,
+        'user_id' => $article->user ? $article->user->id : null, // 添加用户ID
+        'created_at' => Carbon::parse($article->PostTime)->format('Y年m月d日 H:i'),
+        'updated_at' => $article->ChangeTime ? Carbon::parse($article->ChangeTime)->format('Y年m月d日 H:i') : null,
+        'itemImg' => $itemImgBase64,
+        'ItemLink' => $article->ItemLink,
+        'product_tag' => $article->product_tag,
+        'location_tag' => $article->location_tag,
+        'concessionStart' => $article->ConcessionStart,
+        'concessionEnd' => $article->ConcessionEnd,
+    ];
+
+    return response()->json($articleTransformed);
+}
 
     public function search(Request $request)
 {
