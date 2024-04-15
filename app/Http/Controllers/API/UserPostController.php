@@ -12,18 +12,22 @@ class UserPostController extends Controller
 {
     public function store(Request $request)
     {
+
+        $token = $request->token;
+        // echo $token;
+        $decoded_token = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $token)[1]))));
+        $id = $decoded_token->id;
         // if (!Auth::check()) {
         //     return response()->json(['error' => '請登入會員'], 401);
         // }
-
-
+        
         // $user = Auth::user();
-
+        
         $request->validate([
             'product_tag' => 'nullable|string',
             'location_tag' => 'nullable|string',
             'title' => 'required|string',
-            'itemImg' => 'nullable|image|max:2048|dimensions:max_width=1024,max_height=768',
+            'itemImg' => 'nullable|image|max:2048',
             'concessionStart' => 'nullable|date',
             'concessionEnd' => 'nullable|date|after:concessionStart',
             'Article' => 'required|string',
@@ -71,7 +75,7 @@ class UserPostController extends Controller
 
     public function index()
 {
-    $perPage = 10;
+    $perPage = 150;
     $articles = UserPost::with('user:id,name')
                         ->orderBy('PostTime', 'desc')
                         ->paginate($perPage);

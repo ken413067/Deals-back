@@ -99,11 +99,11 @@ class SubAndReportController extends Controller
 
     public function checkFavorite($articleId)
     {
-        $user = Auth::user();
+        // $user = Auth::user();
 
-        if (!$user) {
-            return response()->json(['error' => '請登入會員'], 401);
-        }
+        // if (!$user) {
+        //     return response()->json(['error' => '請登入會員'], 401);
+        // }
 
         $isFavorited = SubAndReport::where('SubReportUID', $user->id)
             ->where('TargetWID', $articleId)
@@ -160,10 +160,10 @@ class SubAndReportController extends Controller
             'ReportContent' => 'required|string',
         ]);
 
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['error' => '用戶未登錄'], 401);
-        }
+        // $user = Auth::user();
+        // if (!$user) {
+        //     return response()->json(['error' => '用戶未登錄'], 401);
+        // }
 
         $subAndReport = new SubAndReport;
         $subAndReport->SubReportUID = $user->id;
