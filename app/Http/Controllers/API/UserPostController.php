@@ -37,7 +37,7 @@ class UserPostController extends Controller
         $article->product_tag = $request->product_tag;
         $article->location_tag = $request->location_tag;
         $article->UID = $user->UID;
-        $article->ItemLink = $request->ItemLink; 
+        $article->ItemLink = $request->ItemLink;
 
 
         if ($request->hasFile('itemImg')) {
@@ -67,18 +67,33 @@ class UserPostController extends Controller
         ]);
     }
 
+    public function destroy($wid)
+    {
+        // 查找要刪除的文章
+        $article = UserPost::find($wid);
+    
+        // 確保文章存在
+        if (!$article) {
+            return response()->json(['message' => '文章不存在'], 404);
+        }
+    
+        // 刪除文章
+        $article->delete();
+    
+        return response()->json(['message' => '文章已刪除'], 200);
+    }
 
     public function index()
     {
         $articles = UserPost::with('user:id,name')
-                            ->orderBy('PostTime', 'desc')
-                            ->get(); 
-    
+            ->orderBy('PostTime', 'desc')
+            ->get();
+
         $articlesTransformed = $articles->map(function ($article) {
             $itemImgBase64 = base64_encode($article->ItemIMG);
-    
+
             $title = $article->InProgress === '已過期' ? '<span class="expired-title">[已過期]</span>  ' . $article->Title . '</span>' : $article->Title;
-    
+
             return [
                 'wid' => $article->WID,
                 'title' => $title,
@@ -94,7 +109,6 @@ class UserPostController extends Controller
                 'concessionEnd' => $article->ConcessionEnd,
             ];
         });
-    
         return response()->json([
             'data' => $articlesTransformed,
         ]);
@@ -136,65 +150,65 @@ class UserPostController extends Controller
 
 
     public function search(Request $request)
-{
-    $request->validate([
-        'keyword' => 'nullable|string',
-        'product_tag' => 'nullable|string',
-        'location_tag' => 'nullable|string',
-    ]);
+    {
+        $request->validate([
+            'keyword' => 'nullable|string',
+            'product_tag' => 'nullable|string',
+            'location_tag' => 'nullable|string',
+        ]);
 
-    $query = UserPost::query();
+        $query = UserPost::query();
 
-    if ($request->has('keyword')) {
-        $query->where(function ($query) use ($request) {
-            $query->where('title', 'like', '%' . $request->keyword . '%')
-                ->orWhere('Article', 'like', '%' . $request->keyword . '%');
+        if ($request->has('keyword')) {
+            $query->where(function ($query) use ($request) {
+                $query->where('title', 'like', '%' . $request->keyword . '%')
+                    ->orWhere('Article', 'like', '%' . $request->keyword . '%');
+            });
+        }
+
+        if ($request->has('product_tag')) {
+            $query->where('product_tag', $request->product_tag);
+        }
+
+        if ($request->has('location_tag')) {
+            $query->where('location_tag', $request->location_tag);
+        }
+
+        $articles = $query->with('user:id,name')->orderBy('PostTime', 'desc')->paginate(10);
+
+        $articlesTransformed = $articles->map(function ($article) {
+            $itemImgBase64 = base64_encode($article->ItemIMG);
+
+            return [
+                'title' => $article->Title,
+                'Article' => $article->Article,
+                'user_name' => $article->user ? $article->user->name : null,
+                'created_at' => Carbon::parse($article->PostTime)->format('Y年m月d日 H:i'),
+                'updated_at' => $article->ChangeTime ? Carbon::parse($article->ChangeTime)->format('Y年m月d日 H:i') : null,
+                'itemImg' => $itemImgBase64,
+                'ItemLink' => $article->ItemLink,
+                'product_tag' => $article->product_tag,
+                'location_tag' => $article->location_tag,
+                'concessionStart' => $article->ConcessionStart,
+                'concessionEnd' => $article->ConcessionEnd,
+            ];
         });
+
+        return response()->json([
+            'data' => $articlesTransformed,
+            'links' => [
+                'first' => $articles->url(1),
+                'last' => $articles->url($articles->lastPage()),
+                'prev' => $articles->previousPageUrl(),
+                'next' => $articles->nextPageUrl(),
+            ],
+            'meta' => [
+                'current_page' => $articles->currentPage(),
+                'last_page' => $articles->lastPage(),
+                'per_page' => $articles->perPage(),
+                'total' => $articles->total(),
+            ],
+        ]);
     }
-    
-    if ($request->has('product_tag')) {
-        $query->where('product_tag', $request->product_tag);
-    }
-    
-    if ($request->has('location_tag')) {
-        $query->where('location_tag', $request->location_tag);
-    }
-
-    $articles = $query->with('user:id,name')->orderBy('PostTime', 'desc')->paginate(10);
-
-    $articlesTransformed = $articles->map(function ($article) {
-        $itemImgBase64 = base64_encode($article->ItemIMG);
-
-        return [
-            'title' => $article->Title,
-            'Article' => $article->Article,
-            'user_name' => $article->user ? $article->user->name : null,
-            'created_at' => Carbon::parse($article->PostTime)->format('Y年m月d日 H:i'),
-            'updated_at' => $article->ChangeTime ? Carbon::parse($article->ChangeTime)->format('Y年m月d日 H:i') : null,
-            'itemImg' => $itemImgBase64,
-            'ItemLink' => $article->ItemLink,
-            'product_tag' => $article->product_tag,
-            'location_tag' => $article->location_tag,
-            'concessionStart' => $article->ConcessionStart,
-            'concessionEnd' => $article->ConcessionEnd,
-        ];
-    });
-
-    return response()->json([
-        'data' => $articlesTransformed,
-        'links' => [
-            'first' => $articles->url(1),
-            'last' => $articles->url($articles->lastPage()),
-            'prev' => $articles->previousPageUrl(),
-            'next' => $articles->nextPageUrl(),
-        ],
-        'meta' => [
-            'current_page' => $articles->currentPage(),
-            'last_page' => $articles->lastPage(),
-            'per_page' => $articles->perPage(),
-            'total' => $articles->total(),
-        ],
-    ]);
-}
 
 }

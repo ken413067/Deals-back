@@ -97,7 +97,7 @@ class RankController extends Controller
   if ($seg_list) {
       $searchlist = array();
       foreach ($seg_list as $seg) { //第一個迴圈 跑斷詞迴圈
-          // echo "斷詞: " . $seg . "\n";
+        //   echo "斷詞: " . $seg . "\n";
           
           foreach ($mergedData as $value) { //第二個迴圈 匹配到的文章 加入到空陣列
               $title = $value['Title'];
