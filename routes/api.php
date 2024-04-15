@@ -103,7 +103,9 @@ Route::controller(PostMessageController::class)->group(function () {
 
 Route::controller(SubAndReportController::class)->group(function () {
     Route::post('/users/{user}/subscribe', 'subscribe');
+    Route::get('/users/{user}/checkSubscription', 'checkSubscription');
     Route::post('/articles/{article}/storeTarget', 'storeTarget');
+    Route::get('/articles/{article}/checkFavorite', 'checkFavorite');
     Route::post('/articles/{article}/report', 'reportArticle');
     Route::post('/comments/{comment}/report', 'reportComment');
 });

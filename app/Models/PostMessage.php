@@ -7,12 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class PostMessage extends Model
 {
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $table = 'PostMessage';
+
+    protected $primaryKey = 'MSGWID';
+
+    public $timestamps = false;
 
     protected $fillable = [
         'WID',
@@ -23,18 +22,10 @@ class PostMessage extends Model
         'MSGReport',
         'MSGHiding',
     ];
-    
-    public $timestamps = false;
 
-    /**
-     * 獲取擁有該文章的使用者。
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
     public function user()
     {
         return $this->belongsTo(User::class, 'UID', 'id');
-        
     }
 
     public function userPost()
@@ -45,11 +36,9 @@ class PostMessage extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::updating(function ($postMessage) {
             $postMessage->MSGChangeTime = now();
         });
     }
-
-    
 }
