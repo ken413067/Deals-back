@@ -87,8 +87,10 @@ Route::middleware('auth:api')->post('/a', [LikeController::class, 'toggleLikeDis
 
 // 李安
 Route::controller(UserPostController::class)->group(function () {
-    Route::post('articles', 'store');  
+    Route::post('articles/post', 'store');  
     Route::get('articles', 'index');  
+    //哲禎新增刪除
+    Route::get('delete', 'destory');  
     Route::get('articles/{id}', 'show')
     ->where('id', '[0-9]+'); 
     Route::get('articles/search', 'search');
@@ -96,7 +98,7 @@ Route::controller(UserPostController::class)->group(function () {
 
 
 Route::controller(PostMessageController::class)->group(function () {
-    Route::post('PostMessage', 'store');  
+    Route::post('PostMessage/tosql', 'store');  
     Route::get('PostMessage', 'index');  
 });
 

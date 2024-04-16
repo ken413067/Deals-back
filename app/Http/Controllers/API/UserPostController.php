@@ -7,71 +7,180 @@ use Illuminate\Http\Request;
 use App\Models\UserPost;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class UserPostController extends Controller
 {
     public function store(Request $request)
     {
-
+        // if (!Auth::check()) {
+        //     return response()->json(['error' => '請登入會員'], 401);
+        // }
+        // 拿token
         $token = $request->token;
         // echo $token;
         $decoded_token = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $token)[1]))));
         $id = $decoded_token->id;
-        // if (!Auth::check()) {
-        //     return response()->json(['error' => '請登入會員'], 401);
-        // }
-        
-        // $user = Auth::user();
-        
+
         $request->validate([
             'product_tag' => 'nullable|string',
             'location_tag' => 'nullable|string',
             'title' => 'required|string',
-            'itemImg' => 'nullable|image|max:2048',
+            'itemImg' => 'nullable',
             'concessionStart' => 'nullable|date',
             'concessionEnd' => 'nullable|date|after:concessionStart',
             'Article' => 'required|string',
             'ItemLink' => 'nullable|string',
         ]);
+        $imagedata = null;
 
-        $article = new UserPost;
-        $article->title = $request->title;
-        $article->Article = $request->Article;
-        $article->ConcessionStart = $request->concessionStart;
-        $article->ConcessionEnd = $request->concessionEnd;        
-        $article->product_tag = $request->product_tag;
-        $article->location_tag = $request->location_tag;
-        // $article->UID = $user->UID;
-        $article->ItemLink = $request->ItemLink; 
+        if (isset($request->itemImg)) {
+            $file = $request->itemImg->get();
+            $imagedata = base64_encode($file);
+        }
+        // 活動開始時間及結束時間的判斷
 
-
-        if ($request->hasFile('itemImg')) {
-            $file = $request->file('itemImg');
-            $binaryData = file_get_contents($file->getPathname());
-            $article->ItemIMG = $binaryData;
+        if ($request->has('concessionStart')) {
+            $concessionStart = Carbon::parse($request->ConcessionStart)->format('Y-m-d');
+        } else {
+            $concessionStart = null;
         }
 
-        $itemImgBase64 = base64_encode($article->ItemIMG);
+        if ($request->has('concessionEnd')) {
+            $concessionEnd = Carbon::parse($request->ConcessionEnd)->format('Y-m-d');
+        } else {
+            $concessionEnd = null;
+        }
+        // 處理上傳時間
+        $postTime = Carbon::now()->tz('Asia/Taipei');
+        // 圖片預設
 
-        // $article->user()->associate($user);
-        $article->save();
+        $article = DB::table('UserPost')->insert([
+            'Title' => $request->title,
+            'ItemIMG' => $imagedata,
+            'Article' => $request->Article,
+            'UID' => $id,
+            'PostTime' => $postTime->toDateTimeString(), // 使用 Carbon 格式化時間
+            // 'updated_at' => $request->ChangeTime ? Carbon::parse($request->ChangeTime)->tz('Asia/Taipei')->format('Y年m月d日 H:i') : null,
+            'ItemLink' => $request->ItemLink,
+            'product_tag' => $request->product_tag,
+            'location_tag' => $request->location_tag,
+            'concessionStart' => $concessionStart,
+            'concessionEnd' => $concessionEnd,
+
+        ]);
+
+        return response()->json(['article' => $article]);
+    }
+    // public function sss(Request $request)
+    // {
+    //     // return $request;
+    //     // $token = $request->token;
+    //     // // echo $token;
+    //     // $decoded_token = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $token)[1]))));
+    //     // $id = $decoded_token->id;
+    //     // if (!Auth::check()) {
+    //     //     return response()->json(['error' => '請登入會員'], 401);
+    //     // }
+
+    //     // $user = Auth::user();
+
+    //     $request->validate([
+    //         'product_tag' => 'nullable|string',
+    //         'location_tag' => 'nullable|string',
+    //         'title' => 'required|string',
+    //         'itemImg' => 'required',
+    //         // 'concessionStart' => 'nullable|date',
+    //         // 'concessionEnd' => 'nullable|date|after:concessionStart',
+    //         'Article' => 'required|string',
+    //         // 'ItemLink' => 'nullable|string',
+    //     ]);
+
+    //     $article = new UserPost;
+    //     $article->title = $request->title;
+    //     $article->Article = $request->Article;
+    //     // $article->ConcessionStart = $request->concessionStart;
+    //     // $article->ConcessionEnd = $request->concessionEnd;        
+    //     // $article->product_tag = $request->product_tag;
+    //     // $article->location_tag = $request->location_tag;
+    //     // $article->UID = $user->UID;
+    //     // $article->ItemLink = $request->ItemLink; 
+
+
+    //     if ($request->hasFile('itemImg')) {
+    //         $file = $request->file('itemImg');
+    //         $binaryData = file_get_contents($file->getPathname());
+    //         $article->ItemIMG = $binaryData;
+    //     }
+
+    //     $itemImgBase64 = base64_encode($article->ItemIMG);
+    //     // return $itemImgBase64;
+    //     // $article->user()->associate($user);
+    //     $article->save();
+
+    //     return response()->json([
+    //         'message' => '文章建立成功',
+    //         'title' => $article->title,
+    //         'Article' => $article->Article,
+    //         // 'user_name' => $article->user ? $article->user->name : null,
+    //         // 'created_at' => Carbon::parse($article->PostTime)->tz('Asia/Taipei')->format('Y年m月d日 H:i'),
+    //         // 'updated_at' => $article->ChangeTime ? Carbon::parse($article->ChangeTime)->tz('Asia/Taipei')->format('Y年m月d日 H:i') : null,
+    //         'itemImg' => $itemImgBase64,
+    //         // 'ItemLink' => $article->ItemLink,
+    //         // 'product_tag' => $article->product_tag,
+    //         // 'location_tag' => $article->location_tag,
+    //         // 'concessionStart' => $article->ConcessionStart,
+    //         // 'concessionEnd' => $article->ConcessionEnd,
+    //     ]);
+    // }
+
+
+    public function index()
+    {
+        $perPage = 150;
+        $articles = UserPost::with('user:id,name')
+            ->orderBy('PostTime', 'desc')
+            ->paginate($perPage);
+
+        $articlesTransformed = $articles->map(function ($article) {
+            $itemImgBase64 = base64_encode($article->ItemIMG);
+
+            $title = $article->InProgress === '已過期' ? '<span class="expired-title">[已過期]</span>  ' . $article->Title . '</span>' : $article->Title;
+
+            return [
+                'wid' => $article->WID,
+                'title' => $title,
+                'Article' => $article->Article,
+                'user_name' => $article->user ? $article->user->name : null,
+                'created_at' => Carbon::parse($article->PostTime)->format('Y年m月d日 H:i'),
+                'updated_at' => $article->ChangeTime ? Carbon::parse($article->ChangeTime)->format('Y年m月d日 H:i') : null,
+                'itemImg' => $itemImgBase64,
+                'ItemLink' => $article->ItemLink,
+                'product_tag' => $article->product_tag,
+                'location_tag' => $article->location_tag,
+                'concessionStart' => $article->ConcessionStart,
+                'concessionEnd' => $article->ConcessionEnd,
+            ];
+        });
 
         return response()->json([
-            'message' => '文章建立成功',
-            'title' => $article->title,
-            'Article' => $article->Article,
-            'user_name' => $article->user ? $article->user->name : null,
-            'created_at' => Carbon::parse($article->PostTime)->tz('Asia/Taipei')->format('Y年m月d日 H:i'),
-            'updated_at' => $article->ChangeTime ? Carbon::parse($article->ChangeTime)->tz('Asia/Taipei')->format('Y年m月d日 H:i') : null,
-            'itemImg' => $itemImgBase64,
-            'ItemLink' => $article->ItemLink,
-            'product_tag' => $article->product_tag,
-            'location_tag' => $article->location_tag,
-            'concessionStart' => $article->ConcessionStart,
-            'concessionEnd' => $article->ConcessionEnd,
+            'data' => $articlesTransformed,
+            'links' => [
+                'first' => $articles->url(1),
+                'last' => $articles->url($articles->lastPage()),
+                'prev' => $articles->previousPageUrl(),
+                'next' => $articles->nextPageUrl(),
+            ],
+            'meta' => [
+                'current_page' => $articles->currentPage(),
+                'last_page' => $articles->lastPage(),
+                'per_page' => $perPage,
+                'total' => $articles->total(),
+            ],
         ]);
     }
 
+    //刪除文章
     public function destroy($wid)
     {
         // 查找要刪除的文章
@@ -88,67 +197,34 @@ class UserPostController extends Controller
         return response()->json(['message' => '文章已刪除'], 200);
     }
 
-    public function index()
-    {
-        $articles = UserPost::with('user:id,name')
-                            ->orderBy('PostTime', 'desc')
-                            ->get(); 
-    
-        $articlesTransformed = $articles->map(function ($article) {
-            $itemImgBase64 = base64_encode($article->ItemIMG);
-    
-            $title = $article->InProgress === '已過期' ? '<span class="expired-title">[已過期]</span>  ' . $article->Title . '</span>' : $article->Title;
-    
-            return [
-                'wid' => $article->WID,
-                'title' => $title,
-                'Article' => $article->Article,
-                'user_name' => $article->user ? $article->user->name : null,
-                'created_at' => Carbon::parse($article->PostTime)->format('Y年m月d日 H:i'),
-                'updated_at' => $article->ChangeTime ? Carbon::parse($article->ChangeTime)->format('Y年m月d日 H:i') : null,
-                'itemImg' => $itemImgBase64,
-                'ItemLink' => $article->ItemLink,
-                'product_tag' => $article->product_tag,
-                'location_tag' => $article->location_tag,
-                'concessionStart' => $article->ConcessionStart,
-                'concessionEnd' => $article->ConcessionEnd,
-            ];
-        });
-    
-        return response()->json([
-            'data' => $articlesTransformed,
-        ]);
-    }
-
-
     public function show($id)
-{
-    $article = UserPost::with('user:id,name')->find($id);
+    {
+        $article = UserPost::with('user:id,name')->find($id);
 
-    if (!$article) {
-        return response()->json(['error' => '文章不存在'], 404);
+        if (!$article) {
+            return response()->json(['error' => '文章不存在'], 404);
+        }
+
+        $itemImgBase64 = $article->ItemIMG ? base64_encode($article->ItemIMG) : "";
+
+        $articleTransformed = [
+            'wid' => $article->WID,
+            'title' => $article->Title,
+            'Article' => $article->Article,
+            'user_name' => $article->user ? $article->user->name : null,
+            'user_id' => $article->user ? $article->user->id : null, // 添加用户ID
+            'created_at' => Carbon::parse($article->PostTime)->format('Y年m月d日 H:i'),
+            'updated_at' => $article->ChangeTime ? Carbon::parse($article->ChangeTime)->format('Y年m月d日 H:i') : null,
+            'itemImg' => $itemImgBase64,
+            'ItemLink' => $article->ItemLink,
+            'product_tag' => $article->product_tag,
+            'location_tag' => $article->location_tag,
+            'concessionStart' => $article->ConcessionStart,
+            'concessionEnd' => $article->ConcessionEnd,
+        ];
+
+        return response()->json($articleTransformed);
     }
-
-    $itemImgBase64 = $article->ItemIMG ? base64_encode($article->ItemIMG) : "";
-
-    $articleTransformed = [
-        'wid' => $article->WID,
-        'title' => $article->Title,
-        'Article' => $article->Article,
-        'user_name' => $article->user ? $article->user->name : null,
-        'user_id' => $article->user ? $article->user->id : null, // 添加用户ID
-        'created_at' => Carbon::parse($article->PostTime)->format('Y年m月d日 H:i'),
-        'updated_at' => $article->ChangeTime ? Carbon::parse($article->ChangeTime)->format('Y年m月d日 H:i') : null,
-        'itemImg' => $itemImgBase64,
-        'ItemLink' => $article->ItemLink,
-        'product_tag' => $article->product_tag,
-        'location_tag' => $article->location_tag,
-        'concessionStart' => $article->ConcessionStart,
-        'concessionEnd' => $article->ConcessionEnd,
-    ];
-
-    return response()->json($articleTransformed);
-}
 
     public function search(Request $request)
     {
