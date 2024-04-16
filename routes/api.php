@@ -88,8 +88,10 @@ Route::middleware('auth:api')->post('/a', [LikeController::class, 'toggleLikeDis
 // 李安
 Route::controller(UserPostController::class)->group(function () {
     Route::post('articles/post', 'store');  
+    //教練新增編輯文章
+    Route::post('articles/update', 'UpdatePost');  
     Route::get('articles', 'index');  
-    //哲禎新增刪除
+    //哲禎新增刪除文章
     Route::get('delete', 'destory');  
     Route::get('articles/{id}', 'show')
     ->where('id', '[0-9]+'); 

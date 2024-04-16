@@ -180,6 +180,93 @@ class UserPostController extends Controller
         ]);
     }
 
+    //編輯文章
+    public function UpdatePost(Request $request) {
+
+        $token = $request->token;
+        // echo $token;
+        $decoded_token = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $token)[1]))));
+        $id = $decoded_token->id;
+        // if (!Auth::check()) {
+        //     return response()->json(['error' => '請登入會員'], 401);
+        // }
+        
+        $user = Auth::user();
+        // $request->validate([
+        //     'product_tag' => 'nullable|string',
+        //     'location_tag' => 'nullable|string',
+        //     'title' => 'required|string',
+        //     'itemImg' => 'nullable|image|max:2048',
+        //     'concessionStart' => 'nullable|date',
+        //     'concessionEnd' => 'nullable|date|after:concessionStart',
+        //     'Article' => 'required|string',
+        //     'ItemLink' => 'nullable|string',
+        // ]);
+        
+        
+        $article = new UserPost;
+        $article->Title = $request->title;
+        $article->Article = $request->Article;
+        $article->ConcessionStart = $request->concessionStart;
+        $article->ConcessionEnd = $request->concessionEnd;        
+        $article->product_tag = $request->product_tag;
+        $article->location_tag = $request->location_tag;
+        // $article->UID = $user->UID;
+        $article->ItemLink = $request->ItemLink; 
+
+        if ($request->hasFile('itemImg')) {
+            $file = $request->file('itemImg');
+            $binaryData = file_get_contents($file->getPathname());
+            $article->ItemIMG = $binaryData;
+        }
+        
+        $itemImgBase64 = base64_encode($article->ItemIMG);
+        
+        
+        $email = DB::table("users")
+        ->join("UserPost", "users.id", "=", "UserPost.UID")
+        ->where("users.id", $id)
+        ->select("email")
+        ->get();
+        
+        
+        $original_image =DB::table("UserPost")->select("itemIMG")->where("email", "=" ,$email);
+        $original_Title =DB::table("UserPost")->select("Title")->where("email", "=" ,$email);
+        $original_Article =DB::table("UserPost")->select("Article")->where("email", "=" ,$email);
+        $original_ConcessionStart =DB::table("UserPost")->select("ConcessionStart")->where("email", "=" ,$email);
+        $original_ConcessionEnd =DB::table("UserPost")->select("ConcessionEnd")->where("email", "=" ,$email);
+        
+        $updateData = [];
+        if ($article->ItemIMG !="" && ($article->ItemIMG !=$original_image )) {
+            $updateData["image"] = $article->ItemIMG;
+            $src = $article->ItemIMG;
+        } else if ($article->ItemIMG ="" ) {
+            $src = $original_image;
+        }
+        
+        if ($article->Title !="" && ($article->Title != $original_Title)) {
+            $updateData["Title"] = $article->Title;
+        }
+        
+        if ($article->Article !="" && ($article->Article != $original_Article)) {
+            $updateData["Article"] = $article->Article;
+        }
+        if ($article->ConcessionStart !="" && ($article->ConcessionStart != $original_ConcessionStart)) {
+            $updateData["ConcessionStart"] = $article->ConcessionStart;
+        }
+        if ($article->ConcessionEnd !="" && ($article->ConcessionEnd != $original_ConcessionEnd)) {
+            $updateData["ConcessionEnd"] = $article->ConcessionEnd;
+        }
+        
+        DB::table("UserPost")->where("UID", "=", $id)->update($updateData);
+        // die("OK");
+        
+        return response()->json([
+            // "src" => $itemImgBase64,
+            'message' => 'Item updated successfully',
+        ]);
+    }
+
     //刪除文章
     public function destroy($wid)
     {
