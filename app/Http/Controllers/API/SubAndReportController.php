@@ -25,7 +25,7 @@ class SubAndReportController extends Controller
             return response()->json(['error' => '用戶不存在'], 404);
         }
 
-        $subscription = SubAndReport::where('SubReportUID', $user->id)
+        $subscription = SubAndReport::where('UID', $user->id)
             ->where('TargetUID', $userId)
             ->first();
 
@@ -34,7 +34,7 @@ class SubAndReportController extends Controller
             $message = '取消訂閱';
         } else {
             SubAndReport::create([
-                'SubReportUID' => $user->id,
+                'UID' => $user->id,
                 'TargetUID' => $userId,
             ]);
             $message = '訂閱成功';
@@ -54,7 +54,7 @@ class SubAndReportController extends Controller
             return response()->json(['error' => '請登入會員'], 401);
         }
 
-        $isSubscribed = SubAndReport::where('SubReportUID', $user->id)
+        $isSubscribed = SubAndReport::where('UID', $user->id)
             ->where('TargetUID', $userId)
             ->exists();
 
@@ -77,7 +77,7 @@ class SubAndReportController extends Controller
             return response()->json(['error' => '文章不存在'], 404);
         }
 
-        $subscription = SubAndReport::where('SubReportUID', $user->id)
+        $subscription = SubAndReport::where('UID', $user->id)
             ->where('TargetWID', $articleId)
             ->first();
 
@@ -86,7 +86,7 @@ class SubAndReportController extends Controller
             $message = '取消收藏';
         } else {
             SubAndReport::create([
-                'SubReportUID' => $user->id,
+                'UID' => $user->id,
                 'TargetWID' => $articleId,
             ]);
             $message = '收藏成功';
@@ -99,13 +99,13 @@ class SubAndReportController extends Controller
 
     public function checkFavorite($articleId)
     {
-        // $user = Auth::user();
+        $user = Auth::user();
 
-        // if (!$user) {
-        //     return response()->json(['error' => '請登入會員'], 401);
-        // }
+        if (!$user) {
+            return response()->json(['error' => '請登入會員'], 401);
+        }
 
-        $isFavorited = SubAndReport::where('SubReportUID', $user->id)
+        $isFavorited = SubAndReport::where('UID', $user->id)
             ->where('TargetWID', $articleId)
             ->exists();
 
@@ -135,7 +135,7 @@ class SubAndReportController extends Controller
 
 
         $subAndReport = new SubAndReport;
-        $subAndReport->SubReportUID = $user->id;
+        $subAndReport->UID = $user->id;
         $subAndReport->ReportWID = $articleId;
         $subAndReport->ReportContent = $request->ReportContent;
 
@@ -160,13 +160,13 @@ class SubAndReportController extends Controller
             'ReportContent' => 'required|string',
         ]);
 
-        // $user = Auth::user();
-        // if (!$user) {
-        //     return response()->json(['error' => '用戶未登錄'], 401);
-        // }
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['error' => '用戶未登錄'], 401);
+        }
 
         $subAndReport = new SubAndReport;
-        $subAndReport->SubReportUID = $user->id;
+        $subAndReport->UID = $user->id;
         $subAndReport->ReportMSGWID = $commentID;
         $subAndReport->ReportContent = $request->ReportContent;
 
