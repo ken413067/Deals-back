@@ -60,7 +60,7 @@ class RankController extends Controller
                 "total_dislikes" => isset ($likeCountsDict[$post->WID]['total_dislikes']) ? $likeCountsDict[$post->WID]['total_dislikes'] : '0',
             ];
         }
-
+        // return $mergedData;
   // 根據請求中的類別進行過濾文章
   $category = $request->input('category');
   $seg_list = Jieba::cutForSearch($request->input('search'));
@@ -102,11 +102,13 @@ class RankController extends Controller
           foreach ($mergedData as $value) { //第二個迴圈 匹配到的文章 加入到空陣列
               $title = $value['Title'];
               $article = $value['Article'];
-          
+            
               // return $title;
               if (stripos($title, $seg) !== false || stripos($article, $seg) !== false) {
                   if (!in_array($value, $searchlist)) { // 檢查是否已經存在相同的資料  in_array()是否存在 list = false  , !in_array() 是否不存在 list = true   true執行 
-                      array_push($searchlist, $value); // 如果不存在，才添加
+                    // $value["seg"] = $seg;
+                    // return $value;
+                    array_push($searchlist, $value); // 如果不存在，才添加
                   }
               }
           }

@@ -286,6 +286,7 @@ class AboutController extends Controller
         if (($request->name) != "" && ($request->name != $original_name)) {
             $updateData['name'] = $request->name;
         }
+        
         if (($request->PersonalProfile) != "" && ($request->PersonalProfile != $PersonalProfile)) {
             $updateData['PersonalProfile'] = $request->PersonalProfile;
         }

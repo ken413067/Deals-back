@@ -87,7 +87,8 @@ Route::middleware('auth:api')->post('/a', [LikeController::class, 'toggleLikeDis
 
 // 李安
 Route::controller(UserPostController::class)->group(function () {
-    Route::post('articles', 'store');  
+    Route::post('articles/post', 'store');
+    Route::post('articles/update',"UpdatePost");  
     Route::get('articles', 'index');  
     Route::get('articles/{id}', 'show')
     ->where('id', '[0-9]+'); 
