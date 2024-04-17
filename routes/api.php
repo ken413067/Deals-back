@@ -20,7 +20,7 @@ use App\Http\Controllers\RankController;
 
 // 李安
 
-use App\Http\Controllers\API\UserPostController; 
+use App\Http\Controllers\API\UserPostController;
 use App\Http\Controllers\API\PostMessageController;
 use App\Http\Controllers\API\SubAndReportController;
 
@@ -87,29 +87,40 @@ Route::middleware('auth:api')->post('/a', [LikeController::class, 'toggleLikeDis
 
 // 李安
 Route::controller(UserPostController::class)->group(function () {
-    Route::post('articles/post', 'store');  
+    // 發文
+    Route::post('articles/post', 'store');
     //教練新增編輯文章
-    Route::post('articles/update', 'UpdatePost');  
-    Route::get('articles', 'index');  
+    Route::post('articles/update', 'UpdatePost');
+    Route::get('articles', 'index');
     //哲禎新增刪除文章
-    Route::get('delete', 'destory');  
+    Route::get('delete', 'destory');
+    // 顯示單頁文章
     Route::get('articles/{id}', 'show')
-    ->where('id', '[0-9]+'); 
+        ->where('id', '[0-9]+');
+    // 標籤導向
     Route::get('articles/search', 'search');
 });
 
 
 Route::controller(PostMessageController::class)->group(function () {
-    Route::post('PostMessage/tosql', 'store');  
-    Route::get('PostMessage', 'index');  
+    // 發表評論
+    Route::post('PostMessage/tosql', 'store');
+    // 顯示評論
+    Route::get('PostMessage', 'index');
 });
 
 
 Route::controller(SubAndReportController::class)->group(function () {
+    // 訂閱使用者
     Route::post('/users/{user}/subscribe', 'subscribe');
+    // 獲取訂閱使用者
     Route::get('/users/{user}/checkSubscription', 'checkSubscription');
+    // 點擊收藏
     Route::post('/articles/{article}/storeTarget', 'storeTarget');
+    // 獲取收藏
     Route::get('/articles/{article}/checkFavorite', 'checkFavorite');
+    // 檢舉文章
     Route::post('/articles/{article}/report', 'reportArticle');
+    // 檢舉評論
     Route::post('/comments/{comment}/report', 'reportComment');
 });

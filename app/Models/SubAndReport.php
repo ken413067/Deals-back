@@ -17,7 +17,7 @@ class SubAndReport extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'SubReportUID',
+        'UID',
         'TargetUID',
         'TargetWID',
         'ReportWID',
@@ -33,6 +33,6 @@ class SubAndReport extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class, 'SubReportUID', 'id');
+        return $this->belongsTo(User::class, 'UID', 'id');
     }
 }
