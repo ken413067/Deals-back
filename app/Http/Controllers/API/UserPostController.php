@@ -31,6 +31,7 @@ class UserPostController extends Controller
             'concessionEnd' => 'nullable|date|after:concessionStart',
             'Article' => 'required|string',
             'ItemLink' => 'nullable|string',
+            'InProgress' => 'nullable|string',
         ]);
         $imagedata = null;
 
@@ -67,6 +68,7 @@ class UserPostController extends Controller
             'location_tag' => $request->location_tag,
             'concessionStart' => $concessionStart,
             'concessionEnd' => $concessionEnd,
+            'InProgress' => $request['InProgress'],
 
         ]);
 
@@ -112,10 +114,10 @@ class UserPostController extends Controller
     //         $binaryData = file_get_contents($file->getPathname());
     //         $article->ItemIMG = $binaryData;
     //     }
-        
+
     //     $itemImgBase64 = base64_encode($article->ItemIMG);
-            //     // return $itemImgBase64;
-        
+    //     // return $itemImgBase64;
+
 
     // public function store(Request $request)
     // {
@@ -126,9 +128,9 @@ class UserPostController extends Controller
     //     // if (!Auth::check()) {
     //         //     return response()->json(['error' => '請登入會員'], 401);
     //         // }
-            
+
     //         // $user = Auth::user();
-            
+
     //         // $request->validate([
     //             //     'product_tag' => 'nullable|string',
     //             //     'location_tag' => 'nullable|string',
@@ -139,7 +141,7 @@ class UserPostController extends Controller
     //             //     'Article' => 'required|string',
     //             //     'ItemLink' => 'nullable|string',
     //             // ]);
-                
+
     //             $article = new UserPost;
     //             $article->title = $request->title;
     //             $article->Article = $request->Article;
@@ -150,14 +152,14 @@ class UserPostController extends Controller
     //             $article->ItemIMG = $request->itemImg;
     //             $article->UID = $id;
     //             $article->ItemLink = $request->ItemLink; 
-                
+
     //             // return $request;
     //             if ($request->hasFile('itemImg')) {
     //                 $file = $request->file('itemImg');
     //                 $binaryData = file_get_contents($file->getPathname());
     //                 $article->ItemIMG = $binaryData;
     //             }
-                
+
     //             $itemImgBase64 = base64_encode($article->ItemIMG);
     //             // $itemImgBase64 = base64_encode(file_get_contents($article->ItemIMG));
     //             // return $article;
@@ -231,7 +233,8 @@ class UserPostController extends Controller
     }
 
     //編輯文章
-    public function UpdatePost(Request $request) {
+    public function UpdatePost(Request $request)
+    {
 
         $token = $request->token;
         // echo $token;
@@ -240,7 +243,7 @@ class UserPostController extends Controller
         // if (!Auth::check()) {
         //     return response()->json(['error' => '請登入會員'], 401);
         // }
-        
+
         $user = Auth::user();
         // $request->validate([
         //     'product_tag' => 'nullable|string',
@@ -252,65 +255,65 @@ class UserPostController extends Controller
         //     'Article' => 'required|string',
         //     'ItemLink' => 'nullable|string',
         // ]);
-        
-        
+
+
         $article = new UserPost;
         $article->Title = $request->title;
         $article->Article = $request->Article;
         $article->ConcessionStart = $request->concessionStart;
-        $article->ConcessionEnd = $request->concessionEnd;        
+        $article->ConcessionEnd = $request->concessionEnd;
         $article->product_tag = $request->product_tag;
         $article->location_tag = $request->location_tag;
         // $article->UID = $user->UID;
-        $article->ItemLink = $request->ItemLink; 
+        $article->ItemLink = $request->ItemLink;
 
         if ($request->hasFile('itemImg')) {
             $file = $request->file('itemImg');
             $binaryData = file_get_contents($file->getPathname());
             $article->ItemIMG = $binaryData;
         }
-        
+
         $itemImgBase64 = base64_encode($article->ItemIMG);
-        
-        
+
+
         $email = DB::table("users")
-        ->join("UserPost", "users.id", "=", "UserPost.UID")
-        ->where("users.id", $id)
-        ->select("email")
-        ->get();
-        
-        
-        $original_image =DB::table("UserPost")->select("itemIMG")->where("email", "=" ,$email);
-        $original_Title =DB::table("UserPost")->select("Title")->where("email", "=" ,$email);
-        $original_Article =DB::table("UserPost")->select("Article")->where("email", "=" ,$email);
-        $original_ConcessionStart =DB::table("UserPost")->select("ConcessionStart")->where("email", "=" ,$email);
-        $original_ConcessionEnd =DB::table("UserPost")->select("ConcessionEnd")->where("email", "=" ,$email);
-        
+            ->join("UserPost", "users.id", "=", "UserPost.UID")
+            ->where("users.id", $id)
+            ->select("email")
+            ->get();
+
+
+        $original_image = DB::table("UserPost")->select("itemIMG")->where("email", "=", $email);
+        $original_Title = DB::table("UserPost")->select("Title")->where("email", "=", $email);
+        $original_Article = DB::table("UserPost")->select("Article")->where("email", "=", $email);
+        $original_ConcessionStart = DB::table("UserPost")->select("ConcessionStart")->where("email", "=", $email);
+        $original_ConcessionEnd = DB::table("UserPost")->select("ConcessionEnd")->where("email", "=", $email);
+
         $updateData = [];
-        if ($article->ItemIMG !="" && ($article->ItemIMG !=$original_image )) {
+        if ($article->ItemIMG != "" && ($article->ItemIMG != $original_image)) {
             $updateData["image"] = $article->ItemIMG;
             $src = $article->ItemIMG;
-        } else if ($article->ItemIMG ="" ) {
+        } else if ($article->ItemIMG = "") {
             $src = $original_image;
         }
-        
-        if ($article->Title !="" && ($article->Title != $original_Title)) {
+
+        if ($article->Title != "" && ($article->Title != $original_Title)) {
             $updateData["Title"] = $article->Title;
         }
-        
-        if ($article->Article !="" && ($article->Article != $original_Article)) {
+
+        if ($article->Article != "" && ($article->Article != $original_Article)) {
             $updateData["Article"] = $article->Article;
         }
-        if ($article->ConcessionStart !="" && ($article->ConcessionStart != $original_ConcessionStart)) {
+        if ($article->ConcessionStart != "" && ($article->ConcessionStart != $original_ConcessionStart)) {
             $updateData["ConcessionStart"] = $article->ConcessionStart;
         }
-        if ($article->ConcessionEnd !="" && ($article->ConcessionEnd != $original_ConcessionEnd)) {
+        if ($article->ConcessionEnd != "" && ($article->ConcessionEnd != $original_ConcessionEnd)) {
             $updateData["ConcessionEnd"] = $article->ConcessionEnd;
         }
-        
+
         DB::table("UserPost")->where("UID", "=", $id)->update($updateData);
         // die("OK");
-        
+
         return response()->json([
             // "src" => $itemImgBase64,
             'message' => 'Item updated successfully',
@@ -318,20 +321,29 @@ class UserPostController extends Controller
     }
 
     //刪除文章
-    public function destroy($wid)
+    public function destroy(Request $request, $wid)
     {
-        // 查找要刪除的文章
+        // 从请求中获取token并解析出用户ID
+        $token = $request->token;
+        $decoded_token = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $token)[1]))));
+        $userIdFromToken = $decoded_token->id;
+        // 查找要删除的文章
         $article = UserPost::find($wid);
-    
-        // 確保文章存在
+        
+        // 确保文章存在
         if (!$article) {
             return response()->json(['message' => '文章不存在'], 404);
         }
-    
-        // 刪除文章
+        
+        // 检查解码出的用户ID是否与文章的UID匹配
+        if ($article->UID !== $userIdFromToken) {
+            return response()->json(['message' => '无权删除此文章'], 403);
+        }
+        
+        // 删除文章
         $article->delete();
-    
-        return response()->json(['message' => '文章已刪除'], 200);
+        
+        return response()->json(['message' => '文章已删除'], 200);
     }
 
     public function show($id)

@@ -17,7 +17,7 @@ class RankController extends Controller
     {
         $token = $request->token;
         $uid = null;
-        
+
         if ($token) {
             $decoded_token = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $token)[1]))));
             $uid = $decoded_token->id;
@@ -29,6 +29,8 @@ class RankController extends Controller
             ->select(
                 'UserPost.*',
                 'users.name',
+                'users.image',
+
                 DB::raw('IFNULL(SUM(LikeAndDislike.GiveLike), "0") as total_likes'),
                 DB::raw('IFNULL(SUM(LikeAndDislike.GiveDislike), "0") as total_dislikes')
             )
@@ -48,7 +50,9 @@ class RankController extends Controller
                 'UserPost.Hiding',
                 'UserPost.location_tag',
                 'UserPost.product_tag',
-                'users.name'
+                'users.name',
+                'users.image',
+
             );
 
 

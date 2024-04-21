@@ -19,10 +19,10 @@ use App\Http\Controllers\LikeController;
 use App\Http\Controllers\RankController;
 
 // 李安
-
 use App\Http\Controllers\API\UserPostController;
 use App\Http\Controllers\API\PostMessageController;
 use App\Http\Controllers\API\SubAndReportController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -77,9 +77,9 @@ Route::get('/reload-captcha', [CaptchaServiceController::class, 'reloadCaptcha']
 // 排行榜
 Route::get('/rank', [RankController::class, 'index']);
 
-Route::middleware('auth:api')->post('/like', [LikeController::class, 'like']);
+Route::post('/like', [LikeController::class, 'like']);
 // Route::post('/Wlike', [LikeController::class, 'Wlike']);
-Route::middleware('auth:api')->post('/a', [LikeController::class, 'toggleLikeDislike']);
+Route::post('/a', [LikeController::class, 'toggleLikeDislike']);
 
 
 
@@ -89,11 +89,12 @@ Route::middleware('auth:api')->post('/a', [LikeController::class, 'toggleLikeDis
 Route::controller(UserPostController::class)->group(function () {
     // 發文
     Route::post('articles/post', 'store');
+    //拿文章
+    Route::get('articles', 'index');
     //教練新增編輯文章
     Route::post('articles/update', 'UpdatePost');
-    Route::get('articles', 'index');
     //哲禎新增刪除文章
-    Route::get('delete', 'destory');
+    Route::get('delete/{wid}', 'destroy');
     // 顯示單頁文章
     Route::get('articles/{id}', 'show')
         ->where('id', '[0-9]+');

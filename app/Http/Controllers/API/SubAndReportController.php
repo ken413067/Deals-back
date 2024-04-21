@@ -31,7 +31,7 @@ class SubAndReportController extends Controller
 
         if ($subscription) {
             $subscription->delete();
-            $message = '取消訂閱';
+            $message = '已取消訂閱';
         } else {
             SubAndReport::create([
                 'UID' => $user->id,
