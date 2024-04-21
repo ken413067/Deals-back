@@ -41,13 +41,13 @@ class UserPostController extends Controller
         // 活動開始時間及結束時間的判斷
 
         if ($request->has('concessionStart')) {
-            $concessionStart = Carbon::parse($request->ConcessionStart)->format('Y-m-d');
+            $concessionStart = Carbon::parse($request->concessionStart)->format('Y-m-d');
         } else {
             $concessionStart = null;
         }
 
         if ($request->has('concessionEnd')) {
-            $concessionEnd = Carbon::parse($request->ConcessionEnd)->format('Y-m-d');
+            $concessionEnd = Carbon::parse($request->concessionEnd)->format('Y-m-d');
         } else {
             $concessionEnd = null;
         }
