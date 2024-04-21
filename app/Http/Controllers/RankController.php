@@ -15,6 +15,13 @@ class RankController extends Controller
 {
     public function index(Request $request)
     {
+        $token = $request->token;
+        $uid = null;
+        
+        if ($token) {
+            $decoded_token = json_decode(base64_decode(str_replace('_', '/', str_replace('-', '+', explode('.', $token)[1]))));
+            $uid = $decoded_token->id;
+        }
 
         $posts = DB::table('UserPost')
             ->leftJoin('LikeAndDislike', 'UserPost.WID', '=', 'LikeAndDislike.WID')
@@ -42,8 +49,8 @@ class RankController extends Controller
                 'UserPost.location_tag',
                 'UserPost.product_tag',
                 'users.name'
-            )
-            ->get();
+            );
+
 
         // $posts = DB::table('UserPost')
         //     ->leftJoin('users', 'UserPost.UID', '=', 'users.id')
@@ -94,6 +101,13 @@ class RankController extends Controller
         //         "total_dislikes" => isset($likeCountsDict[$post->WID]['total_dislikes']) ? $likeCountsDict[$post->WID]['total_dislikes'] : '0',
         //     ];
         // }
+
+        // 如果 uid 存在，僅返回使用者自己的文章
+        if ($uid) {
+            $posts->where('UserPost.UID', $uid);
+        }
+        // 取得文章資料
+        $posts = $posts->get();
 
         // 根據請求中的類別進行過濾文章
         $category = $request->input('category');
